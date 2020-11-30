@@ -30,44 +30,26 @@ def custom_strftime(fmt, t):
     return t.strftime(fmt).replace("{S}", str(t.day) + suffix(t.day))
 
 
-def get_next_sunday():
+def get_start_date():
     today = datetime.date.today()
-    return today + datetime.timedelta(days=-today.weekday()-1, weeks=1)
+    return today
+    # return today + datetime.timedelta(days=-today.weekday()-1, weeks=1)
 
-def next_week():
-    today = datetime.date.today()
-    next_sunday = get_next_sunday()
-    return [
-        custom_strftime("%B {S}, %Y", next_sunday + datetime.timedelta(days=i))
-        for i in range(0, 7)
-    ]
+def generate_week():
+    start_date = get_start_date()
+    return [start_date + datetime.timedelta(days=i) for i in range(0, 14)] # Extra for all the iOS craziness...
 
-def next_week_number():
-  return week_from_date(get_next_sunday())
+def get_week_number():
+  return week_from_date(get_start_date())
 
 def generate_template():
-    week = next_week()
-    week_number = next_week_number()
-    template = """
-Week {weekno} of {year}
-Sunday: [[{sunday}]]
-Monday: [[{monday}]]
-Tuesday: [[{tuesday}]]
-Wednesday: [[{wednesday}]]
-Thursday: [[{thursday}]]
-Friday: [[{friday}]]
-Saturday: [[{saturday}]]
-    """.format(
+    week = generate_week()
+    week_number = get_week_number()
+    template = """Week {weekno} of {year}
+""".format(
         year=week_number[0],
         weekno=week_number[1],
-        sunday=week[0],
-        monday=week[1],
-        tuesday=week[2],
-        wednesday=week[3],
-        thursday=week[4],
-        friday=week[5],
-        saturday=week[6],
-    )
+    ) + "\n".join(["""{weekday}: [[{date}]]""".format(weekday=day.strftime("%A"), date=custom_strftime("%B {S}, %Y", day)) for day in week])
     return template
 
 
